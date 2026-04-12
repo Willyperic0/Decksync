@@ -9,7 +9,7 @@
     --active-red: #be123c;
 }
 
-/* --- ESTRUCTURA PARA PIE DE PÁGINA SIEMPRE ABAJO --- */
+/* --- ESTRUCTURA BASE --- */
 body { 
     font-family: 'Inter', sans-serif; 
     background: var(--bg); 
@@ -17,15 +17,12 @@ body {
     margin: 0; 
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Obliga al body a ocupar toda la pantalla */
+    min-height: 100vh; 
 }
 
-/* El elemento main crecerá para ocupar el espacio vacío, empujando al footer */
-main { 
-    flex: 1; 
-}
+main { flex: 1; }
 
-/* --- COMPONENTES --- */
+/* --- COMPONENTES DE NAVEGACIÓN --- */
 header { 
     background: var(--primary); 
     color: white; 
@@ -54,14 +51,14 @@ header {
     font-size: 13px;
 }
 
-.summary-text { flex-grow: 1; text-align: center; margin-left: 60px; }
+.summary-text { flex-grow: 1; text-align: center; }
 
 /* Switch de Vista */
-.view-switch { display: flex; background: white; border-radius: 6px; overflow: hidden; height: 32px; }
+.view-switch { display: flex; background: white; border-radius: 6px; overflow: hidden; height: 32px; flex-shrink: 0; }
 .view-btn { padding: 0 12px; border: none; background: transparent; cursor: pointer; color: #64748b; display: flex; align-items: center; transition: 0.2s; }
 .view-btn.active { background: var(--active-red); color: white; }
 
-/* Inputs */
+/* --- INPUTS --- */
 .input-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; }
 .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .input-group label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
@@ -72,12 +69,16 @@ button:not(.view-btn) { padding: 12px 35px; background: var(--primary); color: w
 button:not(.view-btn):hover { opacity: 0.9; }
 .btn-clear { background: transparent !important; color: #94a3b8 !important; }
 
-/* Resultados */
-.output-grid { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+/* --- RESULTADOS (Layout Desktop) --- */
+.output-grid { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: start; }
 .card-column { background: white; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
 .column-header { padding: 15px; border-bottom: 1px solid #f1f5f9; text-align: center; }
 .column-header h3 { font-size: 11px; font-weight: 900; margin: 0; color: #64748b; text-transform: uppercase; }
 .column-total { font-size: 10px; font-weight: 700; color: #94a3b8; }
+
+.col-a { border-top: 5px solid var(--deck-a); }
+.col-shared { border-top: 5px solid var(--shared); }
+.col-b { border-top: 5px solid var(--deck-b); }
 
 /* MODO GRID */
 .card-display.grid-mode { 
@@ -96,15 +97,44 @@ button:not(.view-btn):hover { opacity: 0.9; }
 .deck-item { display: flex; align-items: center; padding: 8px 20px; border-bottom: 1px solid #f8fafc; font-size: 13px; }
 .deck-item .qty { font-weight: 900; color: var(--active-red); margin-right: 12px; min-width: 20px; }
 
-.col-a { border-top: 5px solid var(--deck-a); }
-.col-shared { border-top: 5px solid var(--shared); }
-.col-b { border-top: 5px solid var(--deck-b); }
+/* --- RESPONSIVE (Móviles - Build 2026.4.12) --- */
+@media (max-width: 900px) {
+    header { padding: 10px 15px; }
+    .logo { font-size: 16px; }
+    .container { padding: 0 10px; margin: 10px auto; }
+    .action-bar { gap: 10px; padding: 0 5px; }
+    
+    button:not(.view-btn) { 
+        padding: 8px 12px; 
+        font-size: 12px;   
+        flex: 1;           
+        max-width: 140px;  
+    }
 
-/* --- FOOTER CORREGIDO --- */
-footer { 
-    padding: 30px; 
-    text-align: center; 
-    color: #94a3b8; 
-    font-size: 11px;
-    margin-top: auto; /* Empuje final para asegurar la posición */
+    .input-card { padding: 15px; margin-bottom: 15px; }
+    .input-grid { grid-template-columns: 1fr; gap: 15px; } 
+    textarea { height: 200px; font-size: 12px; padding: 10px; }
+    .view-switch { height: 26px; }
+    .view-btn { padding: 0 8px; }
+
+    /* --- RESULTADOS APILADOS (Corregido) --- */
+    /* Quitamos el display: flex !important de aquí para que herede el 'none' inicial */
+    .output-grid { 
+        flex-direction: column !important; 
+        gap: 15px; 
+    }
+
+    /* Esta regla detecta cuando tu JS cambia el estilo a 'grid' y lo convierte en flex para móvil */
+    .output-grid[style*="display: grid"],
+    .output-grid[style*="display: block"] {
+        display: flex !important;
+    }
+
+    .card-column { width: 100% !important; }
+    .column-header { padding: 8px; }
+    .card-display.grid-mode { grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 8px; }
+    .qty-badge { min-width: 14px; height: 14px; font-size: 8px; bottom: -2px; right: -2px; border-width: 1px; }
+    .card-label { font-size: 6px; }
 }
+
+footer { padding: 20px; text-align: center; color: #94a3b8; font-size: 10px; margin-top: auto; }
