@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>DeckSync | TCG Management Tool</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --shared: #10b981;
+            --deck-a: #6366f1;
+            --deck-b: #f59e0b;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+        }
+        
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: #1e293b; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* Header Técnico */
+        header { background: var(--primary); color: white; padding: 18px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); z-index: 10; }
+        .logo { font-size: 22px; font-weight: 900; letter-spacing: -1.5px; text-transform: uppercase; }
+        .logo span { color: var(--accent); }
+        .version { font-size: 10px; font-weight: 700; opacity: 0.7; background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
+
+        .container { max-width: 1200px; margin: 40px auto; flex: 1; padding: 0 20px; }
+        
+        /* Área de Entrada */
+        .input-card { background: white; padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .input-group label { display: block; margin-bottom: 10px; font-weight: 700; font-size: 12px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; }
+        textarea { width: 100%; height: 260px; border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-family: 'JetBrains Mono', 'Menlo', monospace; font-size: 13px; resize: none; box-sizing: border-box; background: #fcfcfd; transition: all 0.2s; }
+        textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        
+        .action-bar { text-align: center; padding-top: 25px; border-top: 1px solid var(--border); margin-top: 25px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+        button { padding: 16px 45px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        button:hover { background: #000; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-clear { background: transparent; color: #94a3b8; font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; }
+        .btn-clear:hover { color: #ef4444; }
+
+        /* Resumen de Procesamiento */
+        .sync-info { display: none; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; background: var(--primary); color: white; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+        .sync-info b { color: var(--accent); font-size: 16px; }
+
+        /* Resultados Encuadrados */
+        .output-grid { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 24px; align-items: stretch; }
+        .card-column { background: white; border-radius: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+        .column-header { padding: 20px; border-bottom: 1px solid #f1f5f9; }
+        .column-header h3 { font-size: 11px; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 0.1em; color: #475569; }
+        .column-total { font-size: 10px; font-weight: 700; color: #94a3b8; margin-top: 4px; }
+        
+        .list-body { padding: 20px; flex: 1; min-height: 400px; /* Altura mínima para armonía visual */ }
+        .deck-item { display: grid; grid-template-columns: 35px 1fr; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 13px; line-height: 1.4; border-bottom: 1px solid #f8fafc; padding-bottom: 8px; }
+        .qty { font-weight: 800; color: var(--primary); background: #f1f5f9; height: 28px; width: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 12px; }
+        .card-name { font-weight: 500; }
+        
+        .col-a { border-top: 5px solid var(--deck-a); }
+        .col-shared { border-top: 5px solid var(--shared); }
+        .col-b { border-top: 5px solid var(--deck-b); }
+
+        /* Footer */
+        footer { background: white; border-top: 1px solid var(--border); padding: 25px 40px; color: #94a3b8; font-size: 12px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">DECK<span>SYNC</span></div>
+    <div class="version">BUILD 2026.4.12</div>
+</header>
+
+<div class="container">
+    <div class="input-card">
+        <div class="input-grid">
+            <div class="input-group">
+                <label>Deck 1 (Alpha)</label>
+                <textarea id="d1" placeholder="Pega el contenido del primer deck..."></textarea>
+            </div>
+            <div class="input-group">
+                <label>Deck 2 (Beta)</label>
+                <textarea id="d2" placeholder="Pega el contenido del segundo deck..."></textarea>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button onclick="sync()">Sincronizar</button>
+            <button class="btn-clear" onclick="window.location.reload()">Limpiar</button>
+        </div>
+    </div>
+
+    <div id="sync-summary" class="sync-info">
+        Mapeo de recursos completado. Total de componentes procesados: <b id="total-global">0</b>
+    </div>
+
+    <div class="output-grid" id="res">
+        <div class="card-column col-a">
+            <div class="column-header">
+                <h3>Exclusivos Alpha</h3>
+                <div class="column-total" id="t-a">TOTAL: 0</div>
+            </div>
+            <div class="list-body" id="out-a"></div>
+        </div>
+
+        <div class="card-column col-shared">
+            <div class="column-header">
+                <h3>Core Compartido</h3>
+                <div class="column-total" id="t-shared">TOTAL: 0</div>
+            </div>
+            <div class="list-body" id="out-shared"></div>
+        </div>
+
+        <div class="card-column col-b">
+            <div class="column-header">
+                <h3>Exclusivos Beta</h3>
+                <div class="column-total" id="t-b">TOTAL: 0</div>
+            </div>
+            <div class="list-body" id="out-b"></div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    DeckSync Utility &copy; 2026 | By Willyperic0
+</footer>
+
+<script>
+    function parse(txt) {
+        const dict = {};
+        txt.split('\n').forEach(l => {
+            const m = l.trim().match(/^(\d+)\s+(.+)$/);
+            if (m) {
+                const q = parseInt(m[1]), n = m[2].trim();
+                dict[n] = (dict[n] || 0) + q;
+            }
+        });
+        return dict;
+    }
+
+    function draw(id, tid, data) {
+        const target = document.getElementById(id);
+        const totalDisp = document.getElementById(tid);
+        target.innerHTML = '';
+        let count = 0;
+        
+        const keys = Object.keys(data).sort();
+        if (keys.length === 0) {
+            target.innerHTML = '<div style="color:#cbd5e1; font-size:12px; font-style:italic;">No hay componentes únicos</div>';
+        } else {
+            keys.forEach(k => {
+                const div = document.createElement('div');
+                div.className = 'deck-item';
+                div.innerHTML = `<span class="qty">${data[k]}</span><span class="card-name">${k}</span>`;
+                target.appendChild(div);
+                count += data[k];
+            });
+        }
+        totalDisp.innerText = `RECUENTO TOTAL: ${count}`;
+        return count;
+    }
+
+    function sync() {
+        const d1 = parse(document.getElementById('d1').value);
+        const d2 = parse(document.getElementById('d2').value);
+
+        const shared = {}, solo1 = {}, solo2 = {};
+        const allKeys = new Set([...Object.keys(d1), ...Object.keys(d2)]);
+
+        if (allKeys.size === 0) return;
+
+        allKeys.forEach(k => {
+            const q1 = d1[k] || 0, q2 = d2[k] || 0;
+            const min = Math.min(q1, q2);
+            if (min > 0) shared[k] = min;
+            if (q1 > min) solo1[k] = q1 - min;
+            if (q2 > min) solo2[k] = q2 - min;
+        });
+
+        document.getElementById('res').style.display = 'grid';
+        document.getElementById('sync-summary').style.display = 'flex';
+        
+        const c1 = draw('out-a', 't-a', solo1);
+        const cs = draw('out-shared', 't-shared', shared);
+        const c2 = draw('out-b', 't-b', solo2);
+
+        document.getElementById('total-global').innerText = c1 + cs + c2;
+        
+        document.getElementById('res').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+</script>
+
+</body>
+</html>
